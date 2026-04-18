@@ -1,7 +1,7 @@
 import 'server-only'
 
 const GRAPH_VERSION = 'v21.0'
-const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`
+const GRAPH_BASE = `https://graph.instagram.com/${GRAPH_VERSION}`
 
 async function graphFetch<T>(
   url: string,

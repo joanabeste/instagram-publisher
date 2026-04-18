@@ -102,7 +102,8 @@ export default async function AccountsPage({
                     {expiresSoon && <Badge variant="warning">Token bald abgelaufen</Badge>}
                   </div>
                   <p className="text-xs text-zinc-500">
-                    IG-ID {a.ig_user_id} · FB-Page {a.fb_page_id}
+                    IG-ID {a.ig_user_id}
+                    {a.fb_page_id && <> · FB-Page {a.fb_page_id}</>}
                     {a.token_expires_at && (
                       <> · Token läuft {new Date(a.token_expires_at).toLocaleDateString('de-DE')} ab</>
                     )}

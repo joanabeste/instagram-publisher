@@ -4,8 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import {
   exchangeCodeForToken,
   exchangeLongLivedToken,
-  getUserPages,
-  getPageInstagramAccount,
+  getInstagramProfile,
 } from '@/lib/meta'
 
 const STATE_COOKIE = 'meta_oauth_state'
@@ -48,24 +47,7 @@ export async function GET(request: NextRequest) {
   try {
     const short = await exchangeCodeForToken(code)
     const long = await exchangeLongLivedToken(short.access_token)
-    const pages = await getUserPages(long.access_token)
-
-    if (pages.length === 0) return fail(origin, 'no-pages')
-
-    let picked: {
-      page: (typeof pages)[number]
-      ig: { ig_user_id: string; ig_username: string | null }
-    } | null = null
-
-    for (const page of pages) {
-      const ig = await getPageInstagramAccount(page.id, page.access_token)
-      if (ig) {
-        picked = { page, ig }
-        break
-      }
-    }
-
-    if (!picked) return fail(origin, 'no-ig-account')
+    const profile = await getInstagramProfile(long.access_token)
 
     const tokenExpiresAt = long.expires_in
       ? new Date(Date.now() + long.expires_in * 1000).toISOString()
@@ -74,10 +56,10 @@ export async function GET(request: NextRequest) {
     const { error: insertError } = await supabase.from('instagram_accounts').insert({
       user_id: user.id,
       briefing_id: briefingId,
-      ig_user_id: picked.ig.ig_user_id,
-      ig_username: picked.ig.ig_username,
-      fb_page_id: picked.page.id,
-      access_token: picked.page.access_token,
+      ig_user_id: profile.ig_user_id,
+      ig_username: profile.ig_username,
+      fb_page_id: '',
+      access_token: long.access_token,
       token_expires_at: tokenExpiresAt,
       last_refreshed_at: new Date().toISOString(),
     })
