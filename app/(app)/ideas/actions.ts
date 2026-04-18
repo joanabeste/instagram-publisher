@@ -24,6 +24,12 @@ const ideaSchema = z.object({
   hook_type: z
     .enum(['question', 'statement', 'list', 'comparison', 'shock', 'story'])
     .describe('Grundmuster des Hooks.'),
+  appeal: z
+    .string()
+    .describe('Emotionaler/psychologischer Appeal (z.B. Neugier, FOMO, Identifikation, Aha-Effekt).'),
+  format: z
+    .enum(['talking-head', 'voiceover-broll', 'text-only', 'tutorial', 'listicle', 'story'])
+    .describe('Reel-Format.'),
   pillar: z
     .string()
     .describe('Welche Content-Säule dies bedient (aus der Briefing-Liste).'),
