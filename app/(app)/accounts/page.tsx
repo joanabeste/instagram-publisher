@@ -1,7 +1,12 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Plug } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { disconnectAccountAction } from './actions'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { AccountsToasts } from './accounts-toasts'
+import { cn } from '@/lib/utils'
 
 export const metadata = { title: 'Accounts — ReelForge' }
 
@@ -66,24 +71,16 @@ export default async function AccountsPage({
         </p>
       </div>
 
-      {connected && (
-        <div className="mb-6 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
-          Account verknüpft.
-        </div>
-      )}
-      {errorMessage && (
-        <div className="mb-6 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200">
-          {errorMessage}
-        </div>
-      )}
+      <AccountsToasts connected={Boolean(connected)} error={errorMessage ?? null} />
 
       <div className="mb-6 flex justify-end">
-        <Link
+        <a
           href="/auth/meta/start"
-          className="inline-flex h-10 items-center rounded-md bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className={cn(buttonVariants({ size: 'lg' }))}
         >
+          <Plug />
           Instagram verbinden
-        </Link>
+        </a>
       </div>
 
       {accounts && accounts.length > 0 ? (
@@ -97,30 +94,25 @@ export default async function AccountsPage({
                 key={a.id}
                 className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <div>
-                  <p className="text-sm font-semibold">
-                    @{a.ig_username ?? a.ig_user_id}
-                  </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold truncate">
+                      @{a.ig_username ?? a.ig_user_id}
+                    </p>
+                    {expiresSoon && <Badge variant="warning">Token bald abgelaufen</Badge>}
+                  </div>
                   <p className="text-xs text-zinc-500">
                     IG-ID {a.ig_user_id} · FB-Page {a.fb_page_id}
                     {a.token_expires_at && (
-                      <>
-                        {' · '}
-                        <span className={expiresSoon ? 'text-amber-600' : ''}>
-                          Token läuft {new Date(a.token_expires_at).toLocaleDateString('de-DE')} ab
-                        </span>
-                      </>
+                      <> · Token läuft {new Date(a.token_expires_at).toLocaleDateString('de-DE')} ab</>
                     )}
                   </p>
                 </div>
                 <form action={disconnectAccountAction}>
                   <input type="hidden" name="id" value={a.id} />
-                  <button
-                    type="submit"
-                    className="inline-flex h-8 items-center rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  >
+                  <Button type="submit" variant="outline" size="sm">
                     Trennen
-                  </button>
+                  </Button>
                 </form>
               </li>
             )

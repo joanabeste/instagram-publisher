@@ -1,8 +1,13 @@
 import Link from 'next/link'
+import { ExternalLink, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { cancelScheduledPostAction, deleteScheduledPostAction } from './actions'
 import { PublishNowButton } from './publish-now-button'
 import { ConfirmSubmit } from '@/components/confirm-submit'
+import { Badge } from '@/components/ui/badge'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { ScheduledToast } from './scheduled-toast'
+import { cn } from '@/lib/utils'
 
 export const metadata = { title: 'Posting-Queue — ReelForge' }
 
@@ -15,13 +20,13 @@ const STATUS_LABEL: Record<string, string> = {
   canceled: 'Abgebrochen',
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  'pending-approval': 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200',
-  approved: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
-  posting: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200',
-  posted: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200',
-  failed: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200',
-  canceled: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+const STATUS_VARIANT: Record<string, 'default' | 'warning' | 'success' | 'destructive' | 'muted'> = {
+  'pending-approval': 'warning',
+  approved: 'default',
+  posting: 'default',
+  posted: 'success',
+  failed: 'destructive',
+  canceled: 'muted',
 }
 
 const fmt = new Intl.DateTimeFormat('de-DE', {
@@ -72,11 +77,7 @@ export default async function SchedulePage({
         </p>
       </div>
 
-      {scheduled && (
-        <div className="mb-6 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
-          Post in die Queue gelegt.
-        </div>
-      )}
+      {scheduled && <ScheduledToast />}
 
       {posts.length > 0 ? (
         <ul className="flex flex-col gap-3">
@@ -87,11 +88,9 @@ export default async function SchedulePage({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[p.status] ?? ''}`}
-                  >
+                  <Badge variant={STATUS_VARIANT[p.status] ?? 'muted'}>
                     {STATUS_LABEL[p.status] ?? p.status}
-                  </span>
+                  </Badge>
                   <span className="text-xs text-zinc-500">
                     {fmt.format(new Date(p.scheduled_for))}
                   </span>
@@ -124,9 +123,10 @@ export default async function SchedulePage({
                     href={p.ig_permalink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-8 items-center rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
                   >
-                    Auf Instagram ansehen
+                    <ExternalLink />
+                    Instagram
                   </a>
                 )}
                 {(p.status === 'approved' || p.status === 'failed') && (
@@ -135,20 +135,21 @@ export default async function SchedulePage({
                 {(p.status === 'approved' || p.status === 'pending-approval') && (
                   <form action={cancelScheduledPostAction}>
                     <input type="hidden" name="id" value={p.id} />
-                    <button
-                      type="submit"
-                      className="inline-flex h-8 items-center rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                    >
+                    <Button type="submit" variant="outline" size="sm">
                       Abbrechen
-                    </button>
+                    </Button>
                   </form>
                 )}
                 <form action={deleteScheduledPostAction}>
                   <input type="hidden" name="id" value={p.id} />
                   <ConfirmSubmit
                     message="Diesen Queue-Eintrag löschen?"
-                    className="inline-flex h-8 items-center rounded-md border border-transparent px-2 text-xs font-medium text-zinc-500 hover:border-red-200 hover:bg-red-50 hover:text-red-700 dark:hover:border-red-900/50 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'sm' }),
+                      'text-zinc-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-300',
+                    )}
                   >
+                    <Trash2 />
                     Löschen
                   </ConfirmSubmit>
                 </form>

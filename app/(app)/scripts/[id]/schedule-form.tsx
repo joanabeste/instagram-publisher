@@ -1,19 +1,21 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { useFormStatus } from 'react-dom'
+import { toast } from 'sonner'
+import { CalendarClock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { schedulePostAction, type SchedulePostResult } from '../actions'
 
 function Submit() {
   const { pending } = useFormStatus()
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-flex h-10 items-center rounded-md bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-    >
+    <Button type="submit" disabled={pending} size="lg">
+      <CalendarClock />
       {pending ? 'Plane…' : 'Post planen'}
-    </button>
+    </Button>
   )
 }
 
@@ -22,9 +24,6 @@ function minDateTimeLocal(): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
-
-const fieldClass =
-  'h-10 rounded-md border border-zinc-200 bg-transparent px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-800 dark:focus:ring-zinc-100'
 
 export function ScheduleForm({
   scriptId,
@@ -38,22 +37,23 @@ export function ScheduleForm({
     undefined,
   )
 
+  useEffect(() => {
+    if (state && 'error' in state) toast.error(state.error)
+  }, [state])
+
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="script_id" value={scriptId} />
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="video_url" className="text-sm font-medium">
-          Video-URL (HTTPS, MP4, öffentlich)
-        </label>
-        <input
+        <Label htmlFor="video_url">Video-URL (HTTPS, MP4, öffentlich)</Label>
+        <Input
           id="video_url"
           name="video_url"
           type="url"
           required
           defaultValue={existingVideoUrl ?? ''}
           placeholder="https://storage.example/reel.mp4"
-          className={fieldClass}
         />
         <p className="text-xs text-zinc-500">
           Bis Phase 3b (Auto-Render) fertig ist: Video selbst erstellen, irgendwo öffentlich
@@ -62,22 +62,15 @@ export function ScheduleForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="scheduled_for" className="text-sm font-medium">
-          Zeitpunkt
-        </label>
-        <input
+        <Label htmlFor="scheduled_for">Zeitpunkt</Label>
+        <Input
           id="scheduled_for"
           name="scheduled_for"
           type="datetime-local"
           required
           min={minDateTimeLocal()}
-          className={fieldClass}
         />
       </div>
-
-      {state && 'error' in state && (
-        <p className="text-sm text-red-700 dark:text-red-300">{state.error}</p>
-      )}
 
       <div className="flex justify-end">
         <Submit />
