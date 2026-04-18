@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { toast } from 'sonner'
 import { CalendarClock } from 'lucide-react'
@@ -36,6 +36,7 @@ export function ScheduleForm({
     schedulePostAction,
     undefined,
   )
+  const [videoUrl, setVideoUrl] = useState(existingVideoUrl ?? '')
 
   useEffect(() => {
     if (state && 'error' in state) toast.error(state.error)
@@ -52,7 +53,8 @@ export function ScheduleForm({
           name="video_url"
           type="url"
           required
-          defaultValue={existingVideoUrl ?? ''}
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
           placeholder="https://storage.example/reel.mp4"
         />
         <p className="text-xs text-zinc-500">

@@ -27,13 +27,12 @@ const ideaSchema = z.object({
   appeal: z
     .string()
     .describe('Emotionaler/psychologischer Appeal (z.B. Neugier, FOMO, Identifikation, Aha-Effekt).'),
-  format: z
-    .enum(['talking-head', 'voiceover-broll', 'text-only', 'tutorial', 'listicle', 'story'])
-    .describe('Reel-Format.'),
   pillar: z
     .string()
     .describe('Welche Content-Säule dies bedient (aus der Briefing-Liste).'),
 })
+
+const IDEA_FORMAT = 'text-on-screen' as const
 
 const BATCH_SIZE = 8
 
@@ -73,11 +72,12 @@ export async function generateIdeasAction(): Promise<GenerateIdeasResult> {
     `Content-Säulen: ${pillarsLine}`,
     briefing.visual_style ? `Visueller Stil: ${briefing.visual_style}` : '',
     '',
-    `Generiere ${BATCH_SIZE} unterschiedliche Reel-Ideen. Jede Idee:`,
+    `Generiere ${BATCH_SIZE} unterschiedliche Reel-Ideen im Format TEXT-ON-SCREEN:`,
+    '  → Hook + Concept werden als Text über B-Roll eingeblendet — kein Talking-Head, kein Voiceover als Haupt-Medium.',
+    '  → Concept muss eigenständig lesbar sein (2–4 Sätze) und für die Leinwand geschrieben, nicht für gesprochene Sprache.',
     '- Hook in der oben genannten Sprache, scroll-stoppend, 3–10 Wörter',
-    '- Concept beschreibt konkret, was visuell passiert (1–2 Sätze)',
     '- Pillar kommt aus der Content-Säulen-Liste (oder passt organisch dazu)',
-    '- Die 8 Ideen variieren in Format und Hook-Typ — nicht alle Fragen, nicht alle Listen',
+    '- Die 8 Ideen variieren nur im Hook-Typ — nicht alle Fragen, nicht alle Listen',
     '- Keine Hashtags, keine Emojis in Hook/Concept',
   ]
     .filter(Boolean)
@@ -98,7 +98,7 @@ export async function generateIdeasAction(): Promise<GenerateIdeasResult> {
       concept: idea.concept,
       hook_type: idea.hook_type,
       appeal: idea.appeal,
-      format: idea.format,
+      format: IDEA_FORMAT,
       pillar: idea.pillar,
       source: 'ai' as const,
       status: 'new' as const,
